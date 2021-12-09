@@ -153,7 +153,7 @@ class EtsySpider(scrapy.Spider):
                 print("Invalid value for Float-type conversion:", rating)
 
             profile_picture_url = review_li.xpath(
-                '//div[contains(@class, "flag-img")]/img/@src'
+                './/div[contains(@class, "flag-img")]/img/@src'
             ).extract_first()
 
             review_item = {}
