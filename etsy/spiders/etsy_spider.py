@@ -1,7 +1,8 @@
 import scrapy
 import datetime
 import json
-
+from scrapy.selector import Selector
+from scrapy.utils.python import to_bytes
 class EtsySpider(scrapy.Spider):
     name = 'reviews'
     start_urls = [
@@ -13,6 +14,7 @@ class EtsySpider(scrapy.Spider):
     ]
 
     def parse(self, response):
+        # print(response.body)
         seller_name = response.xpath(
             './/div[contains(@class, "shop-name-and-title-container")]/h1/text()'
             ).extract_first()
@@ -80,7 +82,8 @@ class EtsySpider(scrapy.Spider):
     def parse_reviews(self, response):
         json_resp = json.loads(response.body)
         resp_html = json_resp['output']['shop-reviews']
-        response = response.replace(body=resp_html.encode('utf-8'))
+        resp_html = resp_html.replace('\"','"')
+        resp = Selector(text=resp_html)
         page = response.meta.get('page')
         page += 1
         print(response.url, page)
@@ -95,7 +98,7 @@ class EtsySpider(scrapy.Spider):
                     '%5D%5B1%5D%5Bshould_hide_reviews%5D=true&specs%5Bshop-reviews%5D%5B1%5D%5'\
                     'Bis_in_shop_home%5D=true&specs%5Bshop-reviews%5D%5B1%5D%5Bsort_option%5D=Relevancy'
 
-        reviews_list = self.collect_reviews(response, reviews_list)
+        reviews_list = self.collect_reviews(resp, reviews_list)
         
         if page <= 3 and next_page:
             yield scrapy.Request(
